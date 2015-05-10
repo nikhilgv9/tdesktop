@@ -218,6 +218,7 @@ public slots:
 	void onFilterUpdate(bool force = false);
 	void onAddContact();
 	void onNewGroup();
+    void onNewSectetChat();
 	bool onCancelSearch();
 
 	void onFilterCursorMoved(int from = -1, int to = -1);
@@ -242,7 +243,7 @@ private:
 	mtpRequestId contactsRequest;
 
 	FlatInput _filter;
-	IconedButton _newGroup, _addContact, _cancelSearch;
+    IconedButton _newGroup, _newSecretChat, _addContact, _cancelSearch;
 	ScrollArea scroll;
 	DialogsListWidget list;
 

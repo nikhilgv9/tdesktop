@@ -657,7 +657,7 @@ dlgFilter: flatInput(inpDefGray) {
 	textMrg: margins(34px, 2px, 34px, 4px);
 	imgRect: sprite(227px, 21px, 24px, 24px);
 	imgPos: point(6px, 5px);
-	width: 240px;
+        width: 200px;
 
 	borderWidth: 2px;
 	borderColor: #f2f2f2;
@@ -1085,6 +1085,17 @@ btnAddContact: iconedButton(btnNewGroup) {
 btnCancelSearch: iconedButton(btnNewGroup) {
 	icon: sprite(188px, 43px, 18px, 18px);
 	downIcon: sprite(188px, 43px, 18px, 18px);
+}
+btnNewSecretChat: iconedButton(btnDefIconed) {
+        icon: sprite(342px, 67px, 18px, 17px);
+        iconPos: point(8px, 8px);
+        downIcon: sprite(342px, 67px, 18px, 17px);
+        downIconPos: point(8px, 9px);
+
+        bgColor: transparent;
+        overBgColor: transparent;
+        width: 30px;
+        height: 36px;
 }
 
 notifyBG: white;

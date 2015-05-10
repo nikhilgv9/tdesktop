@@ -384,15 +384,15 @@ _failDifferenceTimeout(1), _lastUpdateTime(0), _cachedX(0), _cachedY(0), _backgr
 
 	dialogs.show();
 	if (cWideMode()) {
-		history.show();
+        history.show();
 	} else {
 		history.hide();
-	}
+    }
 	App::wnd()->getTitle()->updateBackButton();
 	_topBar.hide();
 
 	_topBar.raise();
-	dialogs.raise();
+    dialogs.raise();
 	_mediaType.raise();
 
 	MTP::setGlobalFailHandler(rpcFail(&MainWidget::updateFail));
@@ -403,7 +403,7 @@ _failDifferenceTimeout(1), _lastUpdateTime(0), _cachedX(0), _cachedY(0), _backgr
 	show();
 	setFocus();
 
-	_api->init();
+    _api->init();
 }
 
 void MainWidget::onForward(const PeerId &peer, bool forwardSelected) {
@@ -2021,16 +2021,16 @@ bool MainWidget::animStep(float64 ms) {
 }
 
 void MainWidget::paintEvent(QPaintEvent *e) {
-	if (_background) checkChatBackground();
+    if (_background) checkChatBackground();
 
-	QPainter p(this);
-	if (animating()) {
-		p.setOpacity(a_bgAlpha.current());
-		p.drawPixmap(a_bgCoord.current(), 0, _bgAnimCache);
-		p.setOpacity(a_alpha.current());
-		p.drawPixmap(a_coord.current(), 0, _animCache);
-	} else {
-	}
+    QPainter p(this);
+    if (animating()) {
+        p.setOpacity(a_bgAlpha.current());
+        p.drawPixmap(a_bgCoord.current(), 0, _bgAnimCache);
+        p.setOpacity(a_alpha.current());
+        p.drawPixmap(a_coord.current(), 0, _animCache);
+    } else {
+    }
 }
 
 void MainWidget::hideAll() {
@@ -2183,7 +2183,7 @@ TopBarWidget *MainWidget::topBar() {
 }
 
 void MainWidget::onTopBarClick() {
-	if (profile) {
+    if (profile) {
 		profile->topBarClick();
 	} else if (overview) {
 		overview->topBarClick();

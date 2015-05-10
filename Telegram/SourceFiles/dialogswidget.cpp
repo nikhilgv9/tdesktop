@@ -1339,6 +1339,7 @@ DialogsWidget::DialogsWidget(MainWidget *parent) : QWidget(parent)
 , contactsRequest(0)
 , _filter(this, st::dlgFilter, lang(lng_dlg_filter))
 , _newGroup(this, st::btnNewGroup)
+, _newSecretChat(this, st::btnNewSecretChat)
 , _addContact(this, st::btnAddContact)
 , _cancelSearch(this, st::btnCancelSearch)
 , scroll(this, st::dlgScroll)
@@ -1363,6 +1364,7 @@ DialogsWidget::DialogsWidget(MainWidget *parent) : QWidget(parent)
 	connect(parent, SIGNAL(dialogsUpdated()), this, SLOT(onListScroll()));
 	connect(&_addContact, SIGNAL(clicked()), this, SLOT(onAddContact()));
 	connect(&_newGroup, SIGNAL(clicked()), this, SLOT(onNewGroup()));
+    connect(&_newSecretChat, SIGNAL(clicked()), this, SLOT(onNewSectetChat()));
 	connect(&_cancelSearch, SIGNAL(clicked()), this, SLOT(onCancelSearch()));
 
 	_searchTimer.setSingleShot(true);
@@ -1375,8 +1377,10 @@ DialogsWidget::DialogsWidget(MainWidget *parent) : QWidget(parent)
 	_filter.customUpDown(true);
 	_addContact.hide();
 	_newGroup.show();
+    _newSecretChat.show();
 	_cancelSearch.hide();
 	_newGroup.move(width() - _newGroup.width() - st::dlgPaddingHor, 0);
+    _newSecretChat.move(width() - _newGroup.width() - _newSecretChat.width() - st::dlgPaddingHor, 0);
 	_addContact.move(width() - _addContact.width() - st::dlgPaddingHor, 0);
 	_cancelSearch.move(width() - _cancelSearch.width() - st::dlgPaddingHor, 0);
 }
@@ -1415,6 +1419,7 @@ void DialogsWidget::animShow(const QPixmap &bgAnimCache) {
 	_filter.hide();
 	_cancelSearch.hide();
 	_newGroup.hide();
+    _newSecretChat.hide();
 	a_coord = anim::ivalue(-st::introSlideShift, 0);
 	a_alpha = anim::fvalue(0, 1);
 	a_bgCoord = anim::ivalue(0, st::introSlideShift);
@@ -1739,9 +1744,11 @@ void DialogsWidget::onFilterUpdate(bool force) {
 		_searchQuery = QString();
 		_cancelSearch.hide();
 		_newGroup.show();
+        _newSecretChat.show();
 	} else if (_cancelSearch.isHidden()) {
 		_cancelSearch.show();
 		_newGroup.hide();
+        _newSecretChat.hide();
 	}
 	if (filterText.size() < MinUsernameLength) {
 		_peopleCache.clear();
@@ -1796,6 +1803,7 @@ void DialogsWidget::resizeEvent(QResizeEvent *e) {
 	int32 w = width() - st::dlgShadow;
 	_filter.setGeometry(st::dlgPaddingHor, st::dlgFilterPadding, w - 2 * st::dlgPaddingHor, _filter.height());
 	_newGroup.move(w - _newGroup.width() - st::dlgPaddingHor, _filter.y());
+    _newSecretChat.move(w - _newGroup.width() - _newSecretChat.width() - st::dlgPaddingHor, _filter.y());
 	_addContact.move(w - _addContact.width() - st::dlgPaddingHor, _filter.y());
 	_cancelSearch.move(w - _cancelSearch.width() - st::dlgPaddingHor, _filter.y());
 	scroll.move(0, _filter.height() + 2 * st::dlgFilterPadding);
@@ -1892,6 +1900,10 @@ void DialogsWidget::onAddContact() {
 
 void DialogsWidget::onNewGroup() {
 	App::wnd()->showLayer(new ContactsBox(true));
+}
+
+void DialogsWidget::onNewSectetChat() {
+    App::wnd()->showLayer(new ContactsBox());
 }
 
 bool DialogsWidget::onCancelSearch() {
