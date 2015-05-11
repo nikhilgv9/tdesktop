@@ -28,7 +28,7 @@ private:
 
 public:
 
-	ContactsInner(bool creatingChat);
+    ContactsInner(bool creatingChat = false, bool secretChat = false);
 	ContactsInner(ChatData *chat);
 	void init();
 
@@ -60,6 +60,7 @@ public:
 
 	ChatData *chat() const;
 	bool creatingChat() const;
+    bool secretChat() const;
 
 	~ContactsInner();
 
@@ -80,6 +81,7 @@ private:
 
 	ChatData *_chat;
 	bool _creatingChat;
+    bool _secretChat;
 	
 	int32 _time;
 
@@ -123,7 +125,7 @@ class ContactsBox : public ItemListBox, public RPCSender {
 
 public:
 
-	ContactsBox(bool creatingChat = false);
+    ContactsBox(bool creatingChat = false, bool secretChat = false);
 	ContactsBox(ChatData *chat);
 	void keyPressEvent(QKeyEvent *e);
 	void paintEvent(QPaintEvent *e);

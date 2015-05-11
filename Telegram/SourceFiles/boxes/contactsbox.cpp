@@ -23,7 +23,8 @@ Copyright (c) 2014 John Preston, https://desktop.telegram.org
 #include "mainwidget.h"
 #include "window.h"
 
-ContactsInner::ContactsInner(bool creatingChat) : _chat(0), _creatingChat(creatingChat),
+ContactsInner::ContactsInner(bool creatingChat, bool secretChat) : _chat(0), _creatingChat(creatingChat),
+_secretChat(secretChat),
 _contacts(&App::main()->contactsList()),
 _sel(0),
 _filteredSel(-1),
@@ -36,6 +37,7 @@ _addContactLnk(this, lang(lng_add_contact_button)) {
 }
 
 ContactsInner::ContactsInner(ChatData *chat) : _chat(chat), _creatingChat(false),
+_secretChat(false),
 _contacts(&App::main()->contactsList()),
 _sel(0),
 _filteredSel(-1),
@@ -328,7 +330,7 @@ void ContactsInner::mousePressEvent(QMouseEvent *e) {
 }
 
 void ContactsInner::chooseParticipant() {
-	if (_chat || _creatingChat) {
+    if (_chat || _creatingChat) {
 		_time = unixtime();
 		int32 rh = st::profileListPhotoSize + st::profileListPadding.height() * 2, from;
 		if (_filter.isEmpty()) {
@@ -369,7 +371,17 @@ void ContactsInner::chooseParticipant() {
 			}
 			emit selectAllQuery();
 		}
-	} else {
+    }
+    else if(_secretChat){
+        PeerId peer = 0;
+        if (peer) {
+            App::wnd()->hideSettings(true);
+            App::main()->showPeer(peer, 0, false, true);
+            App::wnd()->hideLayer();
+        }
+        //MTP::send(MTPmessages_CreateChat(), rpcDone(&CreateGroupBox::created), rpcFail(&CreateGroupBox::failed));
+    }
+    else {
 		int32 rh = st::profileListPhotoSize + st::profileListPadding.height() * 2, from;
 		PeerId peer = 0;
 		if (_filter.isEmpty()) {
@@ -660,6 +672,10 @@ bool ContactsInner::creatingChat() const {
 	return _creatingChat;
 }
 
+bool ContactsInner::secretChat() const {
+    return _secretChat;
+}
+
 ContactsInner::~ContactsInner() {
 	for (ContactsData::iterator i = _contactsData.begin(), e = _contactsData.end(); i != e; ++i) {
 		delete *i;
@@ -838,7 +854,8 @@ PeerData *ContactsInner::selectedUser() {
 	return 0;
 }
 
-ContactsBox::ContactsBox(bool creatingChat) : ItemListBox(st::boxNoTopScroll), _inner(creatingChat),
+ContactsBox::ContactsBox(bool creatingChat, bool secretChat) : ItemListBox(st::boxNoTopScroll),
+_inner(creatingChat, secretChat),
 _addContact(this, lang(lng_add_contact_button), st::contactsAdd),
 _filter(this, st::contactsFilter, lang(lng_participant_filter)),
 _next(this, lang(lng_create_group_next), st::btnSelectDone),
@@ -857,7 +874,7 @@ _cancel(this, lang(lng_cancel), st::btnSelectCancel) {
 void ContactsBox::init() {
 	ItemListBox::init(&_inner, _cancel.height(), st::contactsAdd.height + st::newGroupNamePadding.top() + _filter.height() + st::newGroupNamePadding.bottom());
 
-	if (_inner.chat() || _inner.creatingChat()) {
+    if (_inner.chat() || _inner.creatingChat() || _inner.secretChat()) {
 		_addContact.hide();
 	} else {
 		connect(&_addContact, SIGNAL(clicked()), App::wnd(), SLOT(onShowAddContact()));
@@ -963,7 +980,7 @@ void ContactsBox::showAll() {
 	ItemListBox::showAll();
 	_addContact.show();
 	_filter.show();
-	if (_inner.chat() || _inner.creatingChat()) {
+    if (_inner.chat() || _inner.creatingChat() || _inner.secretChat()) {
 		_next.show();
 		_addContact.hide();
 	} else {
@@ -1005,7 +1022,10 @@ void ContactsBox::paintEvent(QPaintEvent *e) {
 	Painter p(this);
 	if (paint(p)) return;
 
-	if (_inner.chat() || _inner.creatingChat()) {
+    if(_inner.secretChat()){
+        paintTitle(p, lang(lng_new_secret_chat), true);
+    }
+    else if (_inner.chat() || _inner.creatingChat()) {
 		paintTitle(p, lang(_inner.chat() ? lng_profile_add_participant : lng_create_new_group), true);
 
 		// paint button sep

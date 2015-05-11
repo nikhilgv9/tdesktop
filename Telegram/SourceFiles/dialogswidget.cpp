@@ -1903,7 +1903,7 @@ void DialogsWidget::onNewGroup() {
 }
 
 void DialogsWidget::onNewSectetChat() {
-    App::wnd()->showLayer(new ContactsBox());
+    App::wnd()->showLayer(new ContactsBox(false, true));
 }
 
 bool DialogsWidget::onCancelSearch() {
