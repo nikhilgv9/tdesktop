@@ -1977,7 +1977,8 @@ void HistoryWidget::showPeer(const PeerId &peer, MsgId msgId, bool force, bool l
 	if (hist) {
 		if (histPeer->id == peer) {
 			if (msgId != hist->activeMsgId) {
-				if (!force && !hist->canShowAround(msgId)) {
+				bool canShowNow = hist->canShowAround(msgId);
+				if (!force && !canShowNow) {
 					if (_loadingAroundId != msgId) {
 						clearLoadingAround();
 						_loadingAroundId = msgId;
@@ -1986,9 +1987,13 @@ void HistoryWidget::showPeer(const PeerId &peer, MsgId msgId, bool force, bool l
 					return;
 				}
 				hist->loadAround(msgId);
-				if (histPreloading) MTP::cancel(histPreloading);
-				if (histPreloadingDown) MTP::cancel(histPreloadingDown);
-				histPreloading = histPreloadingDown = 0;
+				if (!canShowNow) {
+					histPreload.clear();
+					histPreloadDown.clear();
+					if (histPreloading) MTP::cancel(histPreloading);
+					if (histPreloadingDown) MTP::cancel(histPreloadingDown);
+					histPreloading = histPreloadingDown = 0;
+				}
 			}
 			if (_replyReturn && _replyReturn->id == msgId) calcNextReplyReturn();
 
@@ -2306,6 +2311,8 @@ bool HistoryWidget::messagesFailed(const RPCError &error, mtpRequestId requestId
 void HistoryWidget::messagesReceived(const MTPmessages_Messages &messages, mtpRequestId requestId) {
 	if (!hist) {
 		histPreloading = histPreloadingDown = _loadingAroundRequest = 0;
+		histPreload.clear();
+		histPreloadDown.clear();
 		return;
 	}
 
@@ -2355,11 +2362,13 @@ void HistoryWidget::messagesReceived(const MTPmessages_Messages &messages, mtpRe
 			_loadingAroundRequest = 0;
 			hist->loadAround(_loadingAroundId);
 			if (hist->isEmpty()) {
+				histPreload.clear();
+				histPreloadDown.clear();
+				if (histPreloading) MTP::cancel(histPreloading);
+				if (histPreloadingDown) MTP::cancel(histPreloadingDown);
+				histPreloading = histPreloadingDown = 0;
 				addMessagesToFront(*histList);
 			}
-			if (histPreloading) MTP::cancel(histPreloading);
-			if (histPreloadingDown) MTP::cancel(histPreloadingDown);
-			histPreloading = histPreloadingDown = 0;
 			showPeer(hist->peer->id, _loadingAroundId, true);
 		}
 		return;
@@ -3214,7 +3223,7 @@ void HistoryWidget::confirmSendImage(const ReadyLocalMedia &img) {
 		h->loadAround(0);
 		int32 flags = (h->peer->input.type() == mtpc_inputPeerSelf) ? 0 : (MTPDmessage_flag_unread | MTPDmessage_flag_out); // unread, out
 		if (img.replyTo) flags |= MTPDmessage::flag_reply_to_msg_id;
-		h->addToBack(MTP_message(MTP_int(flags), MTP_int(newId), MTP_int(MTP::authedId()), App::peerToMTP(img.peer), MTPint(), MTPint(), MTP_int(img.replyTo), MTP_int(unixtime()), MTP_string(""), MTP_messageMediaPhoto(img.photo)));
+		h->addToBack(MTP_message(MTP_int(flags), MTP_int(newId), MTP_int(MTP::authedId()), App::peerToMTP(img.peer), MTPint(), MTPint(), MTP_int(img.replyTo), MTP_int(unixtime()), MTP_string(""), MTP_messageMediaPhoto(img.photo, MTP_string(""))));
 	} else if (img.type == ToPrepareDocument) {
 		h->loadAround(0);
 		int32 flags = (h->peer->input.type() == mtpc_inputPeerSelf) ? 0 : (MTPDmessage_flag_unread | MTPDmessage_flag_out); // unread, out
@@ -3250,7 +3259,7 @@ void HistoryWidget::onPhotoUploaded(MsgId newId, const MTPInputFile &file) {
 		if (replyTo) {
 			sendFlags |= MTPmessages_SendMedia::flag_reply_to_msg_id;
 		}
-		hist->sendRequestId = MTP::send(MTPmessages_SendMedia(MTP_int(sendFlags), item->history()->peer->input, MTP_int(replyTo), MTP_inputMediaUploadedPhoto(file), MTP_long(randomId)), App::main()->rpcDone(&MainWidget::sentUpdatesReceived), App::main()->rpcFail(&MainWidget::sendPhotoFailed, randomId), 0, 0, hist->sendRequestId);
+		hist->sendRequestId = MTP::send(MTPmessages_SendMedia(MTP_int(sendFlags), item->history()->peer->input, MTP_int(replyTo), MTP_inputMediaUploadedPhoto(file, MTP_string("")), MTP_long(randomId)), App::main()->rpcDone(&MainWidget::sentUpdatesReceived), App::main()->rpcFail(&MainWidget::sendPhotoFailed, randomId), 0, 0, hist->sendRequestId);
 	}
 }
 
@@ -3424,6 +3433,7 @@ void HistoryWidget::updateListSize(int32 addToY, bool initial, bool loadedDown, 
 
 	if (!isVisible()) {
 		if (initial) _histInited = false;
+		if (resizedItem) _list->recountHeight(true);
 		return; // scrollTopMax etc are not working after recountHeight()
 	}
 
@@ -3745,6 +3755,7 @@ void HistoryWidget::gotPreview(QString links, const MTPMessageMedia &result, mtp
 			_previewData = (data->id && data->pendingTill >= 0) ? data : 0;
 			updatePreview();
 		}
+		if (App::main()) App::main()->webPagesUpdate();
 	} else if (result.type() == mtpc_messageMediaEmpty) {
 		_previewCache.insert(links, 0);
 		if (links == _previewLinks && !_previewCancelled) {

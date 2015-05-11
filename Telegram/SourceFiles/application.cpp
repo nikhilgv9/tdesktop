@@ -481,7 +481,7 @@ void Application::uploadProfilePhoto(const QImage &tosend, const PeerId &peerId)
 
 	PhotoId id = MTP::nonce<PhotoId>();
 
-	MTPPhoto photo(MTP_photo(MTP_long(id), MTP_long(0), MTP_int(MTP::authedId()), MTP_int(unixtime()), MTP_string(""), MTP_geoPointEmpty(), MTP_vector<MTPPhotoSize>(photoSizes)));
+	MTPPhoto photo(MTP_photo(MTP_long(id), MTP_long(0), MTP_int(MTP::authedId()), MTP_int(unixtime()), MTP_geoPointEmpty(), MTP_vector<MTPPhotoSize>(photoSizes)));
 
 	QString file, filename;
 	int32 filesize = 0;
@@ -662,9 +662,9 @@ void Application::checkMapVersion() {
 		psRegisterCustomScheme();
 		if (Local::oldMapVersion()) {
 			QString versionFeatures;
-			if (DevChannel && Local::oldMapVersion() < 8006) {
-				versionFeatures = QString::fromUtf8("\xe2\x80\x94 Old default chat background image placed first in background Gallery\n\xe2\x80\x94 Forwarded files, videos, audios and contacts original sender name is displayed\n\xe2\x80\x94 Grouped notifications when several messages are forwarded").replace('@', qsl("@") + QChar(0x200D));
-			} else if (!DevChannel && Local::oldMapVersion() < 8007) {
+			if (DevChannel && Local::oldMapVersion() < 8010) {
+				versionFeatures = QString::fromUtf8("\xe2\x80\x94 Critical bug fixes with message history loading").replace('@', qsl("@") + QChar(0x200D));
+			} else if (!DevChannel && Local::oldMapVersion() < 8011) {
 				versionFeatures = lang(lng_new_version_text).trimmed();
 			}
 			if (!versionFeatures.isEmpty()) {
